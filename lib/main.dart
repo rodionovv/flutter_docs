@@ -117,7 +117,7 @@ class MyApp extends StatelessWidget {
     );
 
     final mainImage = Image.asset(
-      'images/pavlova.jpg',
+      'images/pic1.jpg',
       fit: BoxFit.cover,
     );
 
