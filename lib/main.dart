@@ -8,7 +8,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "routing",
-      home: FirstRoute()
+      initialRoute: '/',
+      routes: {
+        '/': (context) => FirstRoute(),
+        '/second': (context) => SecondRoute(),
+      },
     );
   }
 }
@@ -19,15 +23,15 @@ class FirstRoute extends StatelessWidget{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('First Route'),
+        title: Text('First Screen'),
       ),
       body: Center(
         child: RaisedButton(
-          child: Text('Open Route'),
+          child: Text('Launch screen'),
           onPressed: () {
-            Navigator.push(
+            Navigator.pushNamed(
                 context,
-                MaterialPageRoute(builder: (context) => SecondRoute())
+                '/second',
             );
           },
         ),
@@ -41,12 +45,15 @@ class SecondRoute extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Second Route"),
+        title: Text("Second Screen"),
       ),
       body: Center(
         child: RaisedButton(
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pushNamed(
+              context,
+              '/'
+            );
           },
           child: Text('Go back!'),
         ),
