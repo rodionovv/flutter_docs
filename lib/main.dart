@@ -1,139 +1,104 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show debugPaintSizeEnabled;
+import 'package:flutter/foundation.dart';
 
 void main() {
   debugPaintSizeEnabled = false; // Set to true for visual layout
   runApp(MyApp());
 }
 
-class Pic {
-  String _path;
-  Pic(this._path);
-  path() {
-    return this._path;
-  }
-}
+//---------------------------- ParentWidget ----------------------------
 
-class Body extends StatefulWidget {
+class ParentWidget extends StatefulWidget {
   @override
-  _BodyState createState() => _BodyState();
+  _ParentWidgetState createState() => _ParentWidgetState();
 }
 
-class _BodyState extends State<Body> {
-  bool showCard = false;
-  Pic pic;
+class _ParentWidgetState extends State<ParentWidget> {
+  bool _active = false;
 
+  void _handleTapboxChanged(bool newValue) {
+    setState(() {
+      _active = newValue;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return showCard ? _makeColumn() : GridView.extent(
-      maxCrossAxisExtent: 150,
-      padding: const EdgeInsets.all(4),
-      mainAxisSpacing: 4,
-      crossAxisSpacing: 4,
-      children: _buildGridTileList(16),
+    return Container(
+      child: TapboxC(
+        active: _active,
+        onChanged: _handleTapboxChanged,
+      ),
     );
   }
+}
 
-  List<Stack> _buildGridTileList(int count) => List.generate(
-      count, (i) => _buildStack(Pic('images/pic${i + 1}.jpg')));
+//----------------------------- TapboxC ------------------------------
 
+class TapboxC extends StatefulWidget {
+  TapboxC({Key key, this.active: false, @required this.onChanged})
+      : super(key: key);
 
+  final bool active;
+  final ValueChanged<bool> onChanged;
 
+  _TapboxCState createState() => _TapboxCState();
+}
 
-  Widget _makeColumn() => Column(
-    children: <Widget>[
-      _buildStack(pic),
-      _buildCard(),
-    ],
-  );
+class _TapboxCState extends State<TapboxC> {
+  bool _highlight = false;
 
-  Widget _buildCard() => SizedBox(
-    height: 210,
-    width: 500,
-    child: GestureDetector(
-     onTap: () {
-       setState(() {
-         showCard = !showCard;
-       });
-     },
-      child: Card(
-        child: Column(
-          children: [
-            ListTile(
-              title: Text('1625 Main Street',
-                  style: TextStyle(fontWeight: FontWeight.w500)),
-              subtitle: Text('My City, CA 99984'),
-              leading: Icon(
-                Icons.restaurant_menu,
-                color: Colors.blue[500],
-              ),
-            ),
-            Divider(),
-            ListTile(
-              title: Text('(408) 555-1212',
-                  style: TextStyle(fontWeight: FontWeight.w500)),
-              leading: Icon(
-                Icons.contact_phone,
-                color: Colors.blue[500],
-              ),
-              trailing: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    pic = Pic("hi");
-                  });
-                },
-                child: Icon(
-                    Icons.more_vert),
-                ),
-              ),
-            ListTile(
-              title: Text('costa@example.com'),
-              leading: Icon(
-                Icons.contact_mail,
-                color: Colors.blue[500],
-              ),
-            ),
-          ],
+  void _handleTapDown(TapDownDetails details) {
+    setState(() {
+      _highlight = true;
+    });
+  }
+
+  void _handleTapUp(TapUpDetails details) {
+    setState(() {
+      _highlight = false;
+    });
+  }
+
+  void _handleTapCancel() {
+    setState(() {
+      _highlight = false;
+    });
+  }
+
+  void _handleTap() {
+    widget.onChanged(!widget.active);
+  }
+
+  Widget build(BuildContext context) {
+    // This example adds a green border on tap down.
+    // On tap up, the square changes to the opposite state.
+    return GestureDetector(
+      onTapDown: _handleTapDown, // Handle the tap events in the order that
+      onTapUp: _handleTapUp, // they occur: down, up, tap, cancel
+      onTap: _handleTap,
+      onTapCancel: _handleTapCancel,
+      child: Container(
+        child: Center(
+          child: Text(widget.active ? 'Active' : 'Inactive',
+              style: TextStyle(fontSize: 32.0, color: Colors.white)),
+        ),
+        width: 200.0,
+        height: 200.0,
+        decoration: BoxDecoration(
+          color:
+          widget.active ? Colors.lightGreen[700] : Colors.grey[600],
+          border: _highlight
+              ? Border.all(
+            color: Colors.teal[700],
+            width: 10.0,
+          )
+              : null,
         ),
       ),
-    )
-  );
-  // #enddocregion Card
-
-
-
-  // #docregion Stack
-  Widget _buildStack(Pic image) => Stack(
-    alignment: const Alignment(0.6, 0.6),
-    children: [
-      CircleAvatar(
-        backgroundImage: AssetImage(image.path()),
-        radius: 100,
-      ),
-      GestureDetector(
-        onTap: () {
-         setState(() {
-           showCard = !showCard;
-           pic = image;
-         });
-        },
-        child:  Container(
-          decoration: BoxDecoration(
-            color: Colors.black45,
-          ),
-          child: Text(
-            image.path(),
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      )
-    ],
-  );
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -147,7 +112,7 @@ class MyApp extends StatelessWidget {
         appBar: AppBar(
           title: Text('Flutter layout demo'),
         ),
-        body: Body(),
+        body: ParentWidget(),
       ),
     );
   }
