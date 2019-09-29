@@ -1,79 +1,67 @@
 import 'package:flutter/material.dart';
 
-class Todo {
-  final String title;
-  final String description;
-
-  Todo(this.title, this.description);
-}
 
 class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Passing Data',
-      home: TodoScreen(
-        todos: List.generate(
-          20,
-          (i) => Todo(
-                  'Todo $i',
-                  'A description of what needs to be done for Todo $i',
-                ),
-        )
-      ),
+      title: 'Transition Demo',
+      home: MainScreen(),
     );
   }
 }
 
-class TodoScreen extends StatelessWidget{
-  final List<Todo> todos;
-
-
-  TodoScreen({Key key, @required this.todos}) : super(key: key);
-
+class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Todos'),
+        title: Text(
+          'Main screen',
+        ),
       ),
-      body: ListView.builder(
-        itemCount: todos.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(todos[index].title),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DetailScreen(todo: todos[index]),
-                )
-              );
-            },
-          );
+      body: GestureDetector(
+        child: MyHero('https://picsum.photos/250?image=9'),
+        onTap: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) {
+            return DetailScreen();
+          }));
         },
       ),
     );
   }
 }
 
-class DetailScreen extends StatelessWidget {
-  final Todo todo;
-  DetailScreen({Key key, @required this.todo}) : super(key: key);
 
+class DetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(todo.title),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Text(todo.description),
+      body: GestureDetector(
+        child: Center(
+          child: MyHero('https://picsum.photos/250?image=9'),
+        ),
+        onTap: () {
+          Navigator.pop(context);
+        },
       ),
     );
+  }
+}
 
+class MyHero extends StatelessWidget {
+  final String path;
+
+  MyHero(this.path);
+  @override
+  Widget build(BuildContext context) {
+    return Hero(
+      tag: 'imageHero',
+      child: Image.network(
+        path,
+      ),
+    );
   }
 }
 
