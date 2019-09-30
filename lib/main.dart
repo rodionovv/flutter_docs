@@ -7,39 +7,16 @@ class LogoApp extends StatefulWidget {
 }
 
 class _LogoAppState extends State<LogoApp> with SingleTickerProviderStateMixin{
-  Animation<double> animation;
-  AnimationController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller =
-        AnimationController(duration: const Duration(seconds: 2),vsync: this);
-    animation = Tween<double>(begin: 0, end:300).animate(controller)
-      ..addListener(() {
-        setState(() {
-
-        });
-      });
-    controller.forward();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 10),
-        height: animation.value,
-        width: animation.value,
+        height: 300,
+        width: 300,
         child: FlutterLogo(),
       ),
     );
-  }
-
-  @override
-  void dispose(){
-    controller.dispose();
-    super.dispose();
   }
 }
 
