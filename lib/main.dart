@@ -1,151 +1,127 @@
-import 'dart:math' as math;
+// Copyright 2017 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that
+// can be found in the LICENSE file.
+
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 
-class Photo extends StatelessWidget {
-  Photo({ Key key, this.photo, this.color, this.onTap }) : super(key: key);
+class StaggerAnimation extends StatelessWidget {
+  StaggerAnimation({ Key key, this.controller }) :
 
-  final String photo;
-  final Color color;
-  final VoidCallback onTap;
+  // Each animation defined here transforms its value during the subset
+  // of the controller's duration defined by the animation's interval.
+  // For example the opacity animation transforms its value during
+  // the first 10% of the controller's duration.
 
-  Widget build(BuildContext context) {
-    return Material(
-      // Slightly opaque color appears where the image has transparency.
-      color: Theme.of(context).primaryColor.withOpacity(0.25),
-      child: InkWell(
-        onTap: onTap,
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints size) {
-            return Image.asset(
-              photo,
-              fit: BoxFit.contain,
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class RadialExpansion extends StatelessWidget {
-  RadialExpansion({
-    Key key,
-    this.minRadius,
-    this.maxRadius,
-    this.child,
-  }) : clipTween = Tween<double>(
-    begin: 2.0 * minRadius,
-    end: 2.0 * (maxRadius / math.sqrt2),
-  ),
-        super(key: key);
-
-  final double minRadius;
-  final double maxRadius;
-  final Tween<double> clipTween;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints size) {
-        final double t = (size.biggest.width / 2.0 - minRadius) / (maxRadius - minRadius);
-        final double rectClipExtent = clipTween.transform(t);
-        return ClipOval(
-          child: Center(
-            child: SizedBox(
-              width: rectClipExtent,
-              height: rectClipExtent,
-              child: ClipRect(
-                child: child,
-              ),
+        opacity = Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).animate(
+          CurvedAnimation(
+            parent: controller,
+            curve: Interval(
+              0.0, 0.100,
+              curve: Curves.ease,
             ),
           ),
-        );
-      },
-    );
-  }
-}
+        ),
 
-class RadialExpansionDemo extends StatelessWidget {
-  static const double kMinRadius = 32.0;
-  static const double kMaxRadius = 128.0;
-  static const opacityCurve = const Interval(0.0, 0.75, curve: Curves.fastOutSlowIn);
-
-  static RectTween _createRectTween(Rect begin, Rect end) {
-    return MaterialRectCenterArcTween(begin: begin, end: end);
-  }
-
-  static Widget _buildPage(BuildContext context, String imageName, String description) {
-    return Container(
-      color: Theme.of(context).canvasColor,
-      child: Center(
-        child: Card(
-          elevation: 8.0,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: kMaxRadius * 2.0,
-                height: kMaxRadius * 2.0,
-                child: Hero(
-                  createRectTween: _createRectTween,
-                  tag: imageName,
-                  child: RadialExpansion(
-                    minRadius: kMinRadius,
-                    maxRadius: kMaxRadius,
-                    child: Photo(
-                      photo: imageName,
-                      onTap: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ),
-                ),
-              ),
-              Text(
-                description,
-                style: TextStyle(fontWeight: FontWeight.bold),
-                textScaleFactor: 3.0,
-              ),
-              const SizedBox(height: 16.0),
-            ],
+        width = Tween<double>(
+          begin: 50.0,
+          end: 150.0,
+        ).animate(
+          CurvedAnimation(
+            parent: controller,
+            curve: Interval(
+              0.125, 0.250,
+              curve: Curves.ease,
+            ),
           ),
         ),
-      ),
-    );
-  }
 
-  Widget _buildHero(BuildContext context, String imageName, String description) {
+        height = Tween<double>(
+            begin: 50.0,
+            end: 150.0
+        ).animate(
+          CurvedAnimation(
+            parent: controller,
+            curve: Interval(
+              0.250, 0.375,
+              curve: Curves.ease,
+            ),
+          ),
+        ),
+
+        padding = EdgeInsetsTween(
+          begin: const EdgeInsets.only(bottom: 16.0),
+          end: const EdgeInsets.only(bottom: 75.0),
+        ).animate(
+          CurvedAnimation(
+            parent: controller,
+            curve: Interval(
+              0.250, 0.375,
+              curve: Curves.ease,
+            ),
+          ),
+        ),
+
+        borderRadius = BorderRadiusTween(
+          begin: BorderRadius.circular(4.0),
+          end: BorderRadius.circular(75.0),
+        ).animate(
+          CurvedAnimation(
+            parent: controller,
+            curve: Interval(
+              0.375, 0.500,
+              curve: Curves.ease,
+            ),
+          ),
+        ),
+
+        color = ColorTween(
+          begin: Colors.indigo[100],
+          end: Colors.orange[400],
+        ).animate(
+          CurvedAnimation(
+            parent: controller,
+            curve: Interval(
+              0.500, 0.750,
+              curve: Curves.ease,
+            ),
+          ),
+        ),
+
+        super(key: key);
+
+  final Animation<double> controller;
+  final Animation<double> opacity;
+  final Animation<double> width;
+  final Animation<double> height;
+  final Animation<EdgeInsets> padding;
+  final Animation<BorderRadius> borderRadius;
+  final Animation<Color> color;
+
+  // This function is called each time the controller "ticks" a new frame.
+  // When it runs, all of the animation's values will have been
+  // updated to reflect the controller's current value.
+  Widget _buildAnimation(BuildContext context, Widget child) {
     return Container(
-      width: kMinRadius * 2.0,
-      height: kMinRadius * 2.0,
-      child: Hero(
-        createRectTween: _createRectTween,
-        tag: imageName,
-        child: RadialExpansion(
-          minRadius: kMinRadius,
-          maxRadius: kMaxRadius,
-          child: Photo(
-            photo: imageName,
-            onTap: () {
-              Navigator.of(context).push(
-                PageRouteBuilder<void>(
-                  pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
-                    return AnimatedBuilder(
-                        animation: animation,
-                        builder: (BuildContext context, Widget child) {
-                          return Opacity(
-                            opacity: opacityCurve.transform(animation.value),
-                            child: _buildPage(context, imageName, description),
-                          );
-                        }
-                    );
-                  },
-                ),
-              );
-            },
+      padding: padding.value,
+      alignment: Alignment.bottomCenter,
+      child: Opacity(
+        opacity: opacity.value,
+        child: Container(
+          width: width.value,
+          height: height.value,
+          decoration: BoxDecoration(
+            color: color.value,
+            border: Border.all(
+              color: Colors.indigo[300],
+              width: 3.0,
+            ),
+            borderRadius: borderRadius.value,
           ),
         ),
       ),
@@ -154,22 +130,72 @@ class RadialExpansionDemo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    timeDilation = 15.0; // 1.0 is normal animation speed.
+    return AnimatedBuilder(
+      builder: _buildAnimation,
+      animation: controller,
+    );
+  }
+}
 
+class StaggerDemo extends StatefulWidget {
+  @override
+  _StaggerDemoState createState() => _StaggerDemoState();
+}
+
+class _StaggerDemoState extends State<StaggerDemo> with TickerProviderStateMixin {
+  AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+        duration: const Duration(milliseconds: 2000),
+        vsync: this
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _playAnimation() async {
+    try {
+      await _controller.forward().orCancel;
+      await _controller.reverse().orCancel;
+    } on TickerCanceled {
+      // the animation got canceled, probably because we were disposed
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    timeDilation = 10.0; // 1.0 is normal animation speed.
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Radial Transition Demo'),
+        title: const Text('Staggered Animation'),
       ),
-      body: Container(
-        padding: const EdgeInsets.all(32.0),
-        alignment: FractionalOffset.bottomLeft,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildHero(context, 'images/chair-alpha.png', 'Chair'),
-            _buildHero(context, 'images/binoculars-alpha.png', 'Binoculars'),
-            _buildHero(context, 'images/beachball-alpha.png', 'Beach ball'),
-          ],
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          _playAnimation();
+        },
+        child: Center(
+          child: Container(
+            width: 300.0,
+            height: 300.0,
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.1),
+              border: Border.all(
+                color:  Colors.black.withOpacity(0.5),
+              ),
+            ),
+            child: StaggerAnimation(
+                controller: _controller.view
+            ),
+          ),
         ),
       ),
     );
@@ -177,5 +203,5 @@ class RadialExpansionDemo extends StatelessWidget {
 }
 
 void main() {
-  runApp(MaterialApp(home: RadialExpansionDemo()));
+  runApp(MaterialApp(home: StaggerDemo()));
 }
