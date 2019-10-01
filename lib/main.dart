@@ -1,34 +1,61 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 
 void main() {
-  runApp(MaterialApp(home: HeroAnimation()));
+  runApp(MaterialApp(home: RadialExpansionDemo()));
 }
 
 
-class PhotoHero extends StatelessWidget {
-  const PhotoHero({Key key, this.photo, this.onTap, this.width}) : super(key: key);
+class Photo extends StatelessWidget {
+  Photo({Key key, this.photo, this.color, this.onTap}) : super(key: key);
 
   final String photo;
+  final Color color;
   final VoidCallback onTap;
-  final double width;
 
- @override
+  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      child: Hero(
-        tag: photo,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            child: Image.asset(
+    return Material(
+      color: Theme.of(context).primaryColor.withOpacity(0.25),
+      child: InkWell(
+        onTap: onTap,
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints size) {
+            return Image.asset(
               photo,
               fit: BoxFit.contain,
-            ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class RadialExpansion extends StatelessWidget {
+  RadialExpansion({
+    Key key,
+    this.maxRadius,
+    this.child,
+  }) : clipRectSize = 2.0 * (maxRadius / math.sqrt2),
+       super(key: key);
+
+  final double maxRadius;
+  final clipRectSize;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipOval(
+      child: Center(
+        child: SizedBox(
+          width: clipRectSize,
+          height: clipRectSize,
+          child: ClipRect(
+            child: child,
           ),
         ),
       ),
@@ -36,45 +63,109 @@ class PhotoHero extends StatelessWidget {
   }
 }
 
+class RadialExpansionDemo extends StatelessWidget {
+  static const double kMinRadius = 32.0;
+  static const double kMaxRadius = 128.0;
+  static const opacityCurve = const Interval(0.0, 0.75, curve: Curves.fastOutSlowIn);
 
-class HeroAnimation extends StatelessWidget {
-  Widget build(BuildContext context) {
-    timeDilation = 5.0; // 1.0 means normal animation speed.
+  static RectTween _createREctTween(Rect begin, Rect end) {
+    return MaterialRectCenterArcTween(begin: begin, end: end);
+  }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Basic Hero Animation'),
-      ),
-      body: Center(
-        child: PhotoHero(
-          photo: 'images/flippers-alpha.png',
-          width: 300.0,
-          onTap: () {
-            Navigator.of(context).push(MaterialPageRoute<void>(
-                builder: (BuildContext context) {
-                  return Scaffold(
-                    appBar: AppBar(
-                      title: const Text('Flippers Page'),
+  static Widget _buildPage(BuildContext context, String imageName, String description) {
+    return Container(
+      color: Theme.of(context).canvasColor,
+      child: Center(
+        child: Card(
+          elevation: 8.0,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              SizedBox(
+                width: kMaxRadius * 2.0,
+                height: kMaxRadius * 2.0,
+                child: Hero(
+                  createRectTween: _createREctTween,
+                  tag: imageName,
+                  child: RadialExpansion(
+                    maxRadius: kMaxRadius,
+                    child: Photo(
+                      photo: imageName,
+                      onTap: () {
+                        Navigator.of(context).pop();
+                      },
                     ),
-                    body: Container(
-                      // Set background to blue to emphasize that it's a new route.
-                      color: Colors.lightBlueAccent,
-                      padding: const EdgeInsets.all(16.0),
-                      alignment: Alignment.topLeft,
-                      child: PhotoHero(
-                        photo: 'images/flippers-alpha.png',
-                        width: 100.0,
-                        onTap: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ),
-                  );
-                }
-            ));
-          },
+                  ),
+                ),
+              ),
+              Text(
+                description,
+                style: TextStyle(fontWeight: FontWeight.bold),
+                textScaleFactor: 3.0,
+              ),
+              const SizedBox(height: 16.0),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  Widget _buildHero(BuildContext context, String imageName, String description){
+    return Container(
+      width: kMinRadius * 2,
+      height: kMinRadius * 2,
+      child: Hero(
+        createRectTween: _createREctTween,
+        tag: imageName,
+        child: RadialExpansion(
+          maxRadius: kMaxRadius,
+          child: Photo(
+            photo: imageName,
+            onTap: () {
+              Navigator.of(context).push(
+                PageRouteBuilder<void>(
+                  pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> swcondaryAnimation) {
+                    return AnimatedBuilder(
+                      animation: animation,
+                      builder: (BuildContext context, Widget child) {
+                        return Opacity(
+                          opacity: opacityCurve.transform(animation.value),
+                          child: _buildPage(context, imageName, description),
+                        );
+                      },
+                    );
+                  }
+                )
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    timeDilation = 5.0;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Radial Transition Demo'),
+      ),
+      body: Container(
+        padding: const EdgeInsets.all(32),
+        alignment: FractionalOffset.bottomLeft,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            _buildHero(context, 'images/chair-alpha.png', 'Chair'),
+            _buildHero(context, 'images/binoculars-alpha.png', 'Binoculars'),
+            _buildHero(context, 'images/beachball-alpha.png', 'Beach ball'),
+          ],
+        ),
+      ),
+    );
+  }
+
 }

@@ -40,7 +40,9 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - images/flippers-alpha.png
+    - images/beachball-alpha.png
+    - images/binoculars-alpha.png
+    - images/chair-alpha.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
