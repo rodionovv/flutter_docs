@@ -1,64 +1,80 @@
-import 'package:flutter/animation.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:flutter/material.dart';
 
-void main() => runApp(LogoApp());
 
-// #docregion AnimatedLogo
-class AnimatedLogo extends AnimatedWidget {
-  static final _opacityTween = Tween<double>(begin: 0.1, end: 1);
-  static final _sizeTween = Tween<double>(begin: 0, end: 300);
+void main() {
+  runApp(MaterialApp(home: HeroAnimation()));
+}
 
 
-  AnimatedLogo({Key key, Animation<double> animation})
-      : super(key: key, listenable: animation);
+class PhotoHero extends StatelessWidget {
+  const PhotoHero({Key key, this.photo, this.onTap, this.width}) : super(key: key);
 
+  final String photo;
+  final VoidCallback onTap;
+  final double width;
+
+ @override
   Widget build(BuildContext context) {
-    final Animation<double> animation = listenable as Animation<double>;
-    return Center(
-      child: Opacity(
-        opacity: _opacityTween.evaluate(animation),
-        child: Container(
-          margin: EdgeInsets.symmetric(vertical: 10),
-          height: _sizeTween.evaluate(animation),
-          width: _sizeTween.evaluate(animation),
-          child: FlutterLogo(),
+    return SizedBox(
+      width: width,
+      child: Hero(
+        tag: photo,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            child: Image.asset(
+              photo,
+              fit: BoxFit.contain,
+            ),
+          ),
         ),
-      )
+      ),
     );
   }
 }
-// #enddocregion AnimatedLogo
 
-class LogoApp extends StatefulWidget {
-  _LogoAppState createState() => _LogoAppState();
-}
 
-class _LogoAppState extends State<LogoApp> with SingleTickerProviderStateMixin {
-  Animation<double> animation;
-  AnimationController controller;
+class HeroAnimation extends StatelessWidget {
+  Widget build(BuildContext context) {
+    timeDilation = 5.0; // 1.0 means normal animation speed.
 
-  @override
-  void initState() {
-    super.initState();
-    controller =
-        AnimationController(duration: const Duration(seconds: 2), vsync: this);
-    animation = CurvedAnimation(parent: controller, curve: Curves.easeIn)
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed){
-          controller.reverse();
-        } else if (status == AnimationStatus.dismissed){
-          controller.forward();
-        }
-      });
-    controller.forward();
-  }
-
-  @override
-  Widget build(BuildContext context) => AnimatedLogo(animation: animation);
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Basic Hero Animation'),
+      ),
+      body: Center(
+        child: PhotoHero(
+          photo: 'images/flippers-alpha.png',
+          width: 300.0,
+          onTap: () {
+            Navigator.of(context).push(MaterialPageRoute<void>(
+                builder: (BuildContext context) {
+                  return Scaffold(
+                    appBar: AppBar(
+                      title: const Text('Flippers Page'),
+                    ),
+                    body: Container(
+                      // Set background to blue to emphasize that it's a new route.
+                      color: Colors.lightBlueAccent,
+                      padding: const EdgeInsets.all(16.0),
+                      alignment: Alignment.topLeft,
+                      child: PhotoHero(
+                        photo: 'images/flippers-alpha.png',
+                        width: 100.0,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ),
+                  );
+                }
+            ));
+          },
+        ),
+      ),
+    );
   }
 }
