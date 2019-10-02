@@ -15,13 +15,18 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         body: CustomScrollView(
           slivers: <Widget>[
-            SliverList(
-              delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
-                RandomColor _randomColor = RandomColor();
-                Color _color = _randomColor.randomColor();
-                return Container(color: _color, height: 150
-                ,child: Center(child: Text(_color.toString())));
-              }),
+            SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4),
+              delegate: SliverChildBuilderDelegate(
+                  (BuildContext context, int index) {
+                    RandomColor _randomColor = RandomColor();
+                    Color _color = _randomColor.randomColor();
+                    return Container(
+                      color: _color,
+                      height: 150,
+                    );
+                  }
+              ),
             )
           ],
         ),
